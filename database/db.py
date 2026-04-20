@@ -1,5 +1,5 @@
 import sqlite3
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 def get_db():
@@ -120,3 +120,20 @@ def create_user(name, email, password):
     except sqlite3.IntegrityError:
         conn.close()
         return None  # Email already exists
+
+
+def authenticate_user(email, password):
+    """
+    Validates email/password combination.
+    Returns {'id': int, 'name': str, 'email': str} on success, None on failure.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user and check_password_hash(user['password_hash'], password):
+        return {'id': user['id'], 'name': user['name'], 'email': user['email']}
+    return None
