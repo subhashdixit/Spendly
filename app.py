@@ -1,7 +1,8 @@
-from flask import Flask, render_template
-from database.db import get_db, init_db, seed_db
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from database.db import get_db, init_db, seed_db, create_user
 
 app = Flask(__name__)
+app.secret_key = 'dev-secret-key-change-in-production'
 
 # Initialize database on startup
 with app.app_context():
@@ -18,8 +19,41 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if request.method == "POST":
+        # Extract form data
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+
+        # Server-side validation
+        if not name:
+            flash("Please enter your name", "error")
+            return render_template("register.html")
+
+        if not email or "@" not in email:
+            flash("Please enter a valid email address", "error")
+            return render_template("register.html")
+
+        if len(password) < 8:
+            flash("Password must be at least 8 characters long", "error")
+            return render_template("register.html")
+
+        # Attempt to create user
+        user_id = create_user(name, email, password)
+
+        if user_id is None:
+            flash("This email is already registered", "error")
+            return render_template("register.html")
+
+        # Success: log user in and redirect
+        session["user_id"] = user_id
+        session["user_name"] = name
+        flash(f"Welcome to Spendly, {name}!", "success")
+        return redirect(url_for("profile"))
+
+    # GET request: show form
     return render_template("register.html")
 
 
