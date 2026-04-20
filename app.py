@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from database.db import get_db, init_db, seed_db, create_user
+from database.db import get_db, init_db, seed_db, create_user, authenticate_user
 
 app = Flask(__name__)
 app.secret_key = 'dev-secret-key-change-in-production'
@@ -21,6 +21,10 @@ def landing():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    # Redirect logged-in users to profile
+    if session.get("user_id"):
+        return redirect(url_for("profile"))
+
     if request.method == "POST":
         # Extract form data
         name = request.form.get("name", "").strip()
@@ -57,8 +61,40 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    # Redirect logged-in users to profile
+    if session.get("user_id"):
+        return redirect(url_for("profile"))
+
+    if request.method == "POST":
+        # Extract form data
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+
+        # Validate empty fields
+        if not email:
+            flash("Please enter your email", "error")
+            return render_template("login.html")
+
+        if not password:
+            flash("Please enter your password", "error")
+            return render_template("login.html")
+
+        # Authenticate user
+        user = authenticate_user(email, password)
+
+        if user is None:
+            flash("Invalid email or password", "error")
+            return render_template("login.html")
+
+        # Success: create session and redirect
+        session["user_id"] = user["id"]
+        session["user_name"] = user["name"]
+        flash(f"Welcome back, {user['name']}!", "success")
+        return redirect(url_for("profile"))
+
+    # GET request: show form
     return render_template("login.html")
 
 
@@ -78,7 +114,9 @@ def privacy():
 
 @app.route("/logout")
 def logout():
-    return "Logout — coming in Step 3"
+    session.clear()
+    flash("You have been logged out", "success")
+    return redirect(url_for("landing"))
 
 
 @app.route("/profile")
