@@ -121,7 +121,54 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    # Authentication guard
+    if not session.get("user_id"):
+        flash("Please log in to view your profile", "error")
+        return redirect(url_for("login"))
+
+    # Hardcoded user info
+    user_info = {
+        "name": session.get("user_name", "John Doe"),
+        "email": "john.doe@example.com",
+        "initials": "JD",
+        "member_since": "January 2026"
+    }
+
+    # Hardcoded summary stats
+    summary_stats = {
+        "total_spent": 3847.50,
+        "transaction_count": 42,
+        "top_category": "Food & Dining"
+    }
+
+    # Hardcoded transaction history
+    transactions = [
+        {"date": "2026-04-22", "description": "Grocery Store", "category": "Food & Dining", "amount": 87.45},
+        {"date": "2026-04-21", "description": "Gas Station", "category": "Transportation", "amount": 52.30},
+        {"date": "2026-04-20", "description": "Coffee Shop", "category": "Food & Dining", "amount": 12.50},
+        {"date": "2026-04-19", "description": "Electric Bill", "category": "Utilities", "amount": 145.00},
+        {"date": "2026-04-18", "description": "Movie Tickets", "category": "Entertainment", "amount": 35.00},
+        {"date": "2026-04-17", "description": "Supermarket", "category": "Food & Dining", "amount": 124.80},
+        {"date": "2026-04-16", "description": "Pharmacy", "category": "Healthcare", "amount": 28.95}
+    ]
+
+    # Hardcoded category breakdown
+    category_breakdown = [
+        {"name": "Food & Dining", "total": 1245.30, "percentage": 32},
+        {"name": "Transportation", "total": 892.50, "percentage": 23},
+        {"name": "Utilities", "total": 645.00, "percentage": 17},
+        {"name": "Entertainment", "total": 485.20, "percentage": 13},
+        {"name": "Healthcare", "total": 354.75, "percentage": 9},
+        {"name": "Shopping", "total": 224.75, "percentage": 6}
+    ]
+
+    return render_template(
+        "profile.html",
+        user_info=user_info,
+        summary_stats=summary_stats,
+        transactions=transactions,
+        category_breakdown=category_breakdown
+    )
 
 
 @app.route("/expenses/add")
