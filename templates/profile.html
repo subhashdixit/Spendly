@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-container">
+
+        {# Flash messages #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {# User Info Card #}
+        <section class="profile-header">
+            <div class="user-card">
+                <div class="user-avatar">
+                    <span class="avatar-initials">{{ user_info.initials }}</span>
+                </div>
+                <div class="user-info">
+                    <h1 class="user-name">{{ user_info.name }}</h1>
+                    <p class="user-email">{{ user_info.email }}</p>
+                    <div class="user-meta">
+                        <i data-lucide="calendar" class="meta-icon"></i>
+                        <span>Member since {{ user_info.member_since }}</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# Summary Stats #}
+        <section class="profile-stats">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-primary">
+                    <i data-lucide="wallet"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Total Spent</p>
+                    <p class="stat-value">₹{{ "%.2f"|format(summary_stats.total_spent) }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-secondary">
+                    <i data-lucide="receipt"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Transactions</p>
+                    <p class="stat-value">{{ summary_stats.transaction_count }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-tertiary">
+                    <i data-lucide="trending-up"></i>
+                </div>
+                <div class="stat-content">
+                    <p class="stat-label">Top Category</p>
+                    <p class="stat-value-small">{{ summary_stats.top_category }}</p>
+                </div>
+            </div>
+        </section>
+
+        {# Transaction History #}
+        <section class="profile-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Transactions</h2>
+                <i data-lucide="history"></i>
+            </div>
+            <div class="transaction-table-wrapper">
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td class="tx-date">{{ transaction.date }}</td>
+                            <td class="tx-description">{{ transaction.description }}</td>
+                            <td>
+                                <span class="category-badge category-{{ transaction.category.lower().replace(' ', '-').replace('&', 'and') }}">
+                                    {{ transaction.category }}
+                                </span>
+                            </td>
+                            <td class="tx-amount text-right">₹{{ "%.2f"|format(transaction.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        {# Category Breakdown #}
+        <section class="profile-section">
+            <div class="section-header">
+                <h2 class="section-title">Spending by Category</h2>
+                <i data-lucide="pie-chart"></i>
+            </div>
+            <div class="category-breakdown">
+                {% for category in category_breakdown %}
+                <div class="category-item">
+                    <div class="category-info">
+                        <span class="category-name">{{ category.name }}</span>
+                        <span class="category-amount">₹{{ "%.2f"|format(category.total) }}</span>
+                    </div>
+                    <div class="category-bar-wrapper">
+                        <div class="category-bar">
+                            <div class="category-bar-fill" style="width: {{ category.percentage }}%"></div>
+                        </div>
+                        <span class="category-percentage">{{ category.percentage }}%</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
